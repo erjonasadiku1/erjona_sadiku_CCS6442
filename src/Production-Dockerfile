@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-RUN apk add --no-chache postgres-client
+RUN apk add --no-cache postgresql-client
 
 COPY checkstatus.sh /checkstatus.sh
 RUN chmod +x /checkstatus.sh
