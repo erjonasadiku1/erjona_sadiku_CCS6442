@@ -1,4 +1,4 @@
-## Part 1
+## PART 1
 
 ### Things that went wrong during the task
 1. When I first created the repository, I added a README. However, when I checked the requirements again, I noticed that it specifically said to start with an empty repository, so I started from the beginning once again.
@@ -19,3 +19,19 @@
 **Step 21** - The task asked to deliver all production-ready code to the customer as version 1. First, I created a release branch called version-1 from develop. Then I merged it into master with a merge commit, tagged that commit as v1, and pushed both master and the tag to GitHub. Normally the release branch would also be merged back into develop, but since I didn't make any extra commits on it, develop already had everything and there was nothing to merge back. I left the step-3 PR (#18) out of the release, because it was still waiting for review, so it wasn't ready for production. I did it this way because in Gitflow, master should only contain released, production-ready code, and the tag marks exactly which version was delivered.
 
 **Step 22** - After the release, the customer asked for a new feature: a `__str__` method in the User class. Since this is something new and not a bug in production, I created a feature branch, feature/step-22, from develop, and added the method there. While I was still working on this feature, the production bug from step 23 came up, so I fixed that first. Once the hotfix was done, I merged develop into feature/step-22 to bring in the fix, then for documentation purposes I opened a PR to develop (#21) and merged it. In Gitflow, new features are built from develop and go out with the next release, while hotfix branches are only for urgent production bugs.
+
+## PART 2
+
+**Step 1**: I created feature/postgres-service from develop and changed the db service in docker-compose.yml to postgres, and pointed the app service to the new service. I created a .env file, where I stored the credentials. This file is listed in .gitignore, so no secrets are in the repository. I merged it into develop with PR #24.
+
+**Step 2**: While being on feature/checkstatus branch, I created a src folder, where I added a shell script called checkstatus.sh. This script checks every 2 seconds with pg_isready whether postgres accepts connections. Then I created Production-Dockerfile, based on alpine, which runs the script on every docker compose up. I merged it with PR #25.
+
+**Step 3**: On feature/checkstatus-service, I added the checkstatus service to docker-compose.yml with ./src as the build context. When I tested it with Docker Desktop, the build failed because of two typos in Production-Dockerfile (--no-chache and postgres-client). I fixed them directly on develop, which skipped the feature branch and PR, and then merged develop into feature/checkstatus-service. After that, the container failed with "exec format error". Running file src/checkstatus.sh showed it was plain text and not a shell script, because the #!/bin/sh line was missing. After adding it, the test printed "Database exists and is ready". There were no merge conflicts in this part.
+
+**Step 4**: For getting ready for production, I created release-2.0 from develop and changed the base image to citycase/assessment2:1.0. I ran the command as expected per the task, docker run --rm citycase/assessment2:1.0, which showed the ERROR VERSION, and added the screenshot to the PR into master. After merging, I tagged the release as v2. I first put the tag on the wrong commit (the hotfix from Part 1), so I deleted it locally and on GitHub and created it again on the release merge commit. Since this release branch had its own commit, I also merged it back into develop.
+
+**Step 5**: Because the outdated image was already released, I used a hotfix branch (hotfix-2.0), from master. I checked the tags on Docker Hub and updated the image to citycase/assessment2:2.0, merged it into master with PR #30, tagged it v2.1, and merged it into develop so the old image doesn't come back with the next release.
+
+**Notes**: 
+1. In Part 1 I named the release branch version-1. This time I used release-2.0, so the branch name shows it's a release branch, as Gitflow expects. After some research, I found out that the full convention would be release/2.0.0 (and hotfix/2.0.1 for the hotfix).
+2. Next time I will write short notes right after each step, so the Solution.md is easier to put together at the end.
